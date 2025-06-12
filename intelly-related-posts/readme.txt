@@ -2,7 +2,7 @@
 Contributors: IntellyWP, Data443
 Tags: inline related posts, suggestions, similar posts, Zemanta, YARPP
 Requires at least: 3.6
-Tested up to: 6.6
+Tested up to: 6.8
 Requires PHP: 5.6
 Stable tag: trunk
 
@@ -59,6 +59,10 @@ For documentation click here: [https://data443.atlassian.net/servicedesk/custome
 
 == Frequently Asked Questions ==
 
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/45c54496-f99c-4a70-9774-f9dcfbc770b9)
+
 = Why should I use this plugin? =
 
 Because it will increase the page views on your site, improving engagement and reducing your bounce rate.
@@ -100,6 +104,11 @@ Absolutely Not! Inline Related Posts is built with lightweight code so you wonâ€
 == Changelog ==
 
 For detailed release notes, see our documentation here: [https://intellywp.com/docs/](https://data443.atlassian.net/servicedesk/customer/portal/17/article/858652673).
+
+= 3.9.0 =
+*Release Date - 2025-6-12*
+
+* Do additional sanitization of inputs (RDU-1629)
 
 = 3.8.0 =
 *Release Date - 2024-7-3*

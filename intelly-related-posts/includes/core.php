@@ -148,7 +148,7 @@ function irp_ui_get_box($ids, $options=NULL) {
             $options['ctaText'] = __('READ', IRP_PLUGIN_SLUG);
         }
 
-        $options['ctaText'] = do_shortcode( $options['ctaText'] );
+        $options['ctaText'] = do_shortcode( wp_kses_post( $options['ctaText'] ) );
 
         $posts=array();
         foreach($ids as $postId) {
