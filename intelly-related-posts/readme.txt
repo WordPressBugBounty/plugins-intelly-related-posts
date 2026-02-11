@@ -5,6 +5,7 @@ Requires at least: 3.6
 Tested up to: 6.8
 Requires PHP: 5.6
 Stable tag: trunk
+License: MIT
 
 Inline Related Posts AUTOMATICALLY inserts related posts INSIDE your content, capturing immediately the reader's attention.
 
