@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 add_filter('wp_head', 'irp_head');
 function irp_head() {
     global $post, $irp;

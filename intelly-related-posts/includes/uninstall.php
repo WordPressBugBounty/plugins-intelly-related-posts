@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 register_deactivation_hook(IRP_PLUGIN_FILE, 'irp_uninstall');
 function irp_uninstall($networkwide=NULL) {
 	global $wpdb, $irp;

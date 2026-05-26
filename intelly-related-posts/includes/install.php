@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 register_activation_hook(IRP_PLUGIN_FILE, 'irp_install');
 function irp_install($networkwide=NULL) {
 	global $wpdb, $irp;

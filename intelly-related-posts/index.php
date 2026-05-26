@@ -6,10 +6,11 @@ Description: Inline Related Posts AUTOMATICALLY inserts related posts INSIDE you
 Author: Data443
 Author URI: https://Data443.com/
 Email: support@intellywp.com
-Version: 3.9.0
+Version: 3.10.0
 Requires at least: 3.6.0
 Requires PHP: 5.6
 */
+if ( ! defined( 'ABSPATH' ) ) exit;
 register_activation_hook(__FILE__, function () {
     if (in_array('intelly-related-posts-pro/index.php', apply_filters('active_plugins', get_option('active_plugins')))) {
         die('This plugin could not be activated because the PRO version of this plugin is active. Deactivate the PRO version before activating this one. No data will be lost.');
@@ -20,7 +21,7 @@ define('IRP_PLUGIN_PREFIX', 'IRP_');
 define('IRP_PLUGIN_FILE',__FILE__);
 define('IRP_PLUGIN_SLUG', 'intelly-related-posts');
 define('IRP_PLUGIN_NAME', 'Inline Related Posts');
-define('IRP_PLUGIN_VERSION', '3.9.0');
+define('IRP_PLUGIN_VERSION', '3.10.0');
 define('IRP_PLUGIN_AUTHOR', 'Data443');
 define('IRP_PLUGIN_ROOT', dirname(__FILE__).'/');
 define('IRP_PLUGIN_IMAGES', plugins_url( 'assets/images/', __FILE__ ));

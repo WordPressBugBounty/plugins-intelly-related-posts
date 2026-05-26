@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 spl_autoload_register('irp_autoload');
 function irp_autoload($class) {
     $root=dirname(__FILE__).'/includes/classes/';

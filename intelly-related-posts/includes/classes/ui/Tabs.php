@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 class IRP_Tabs {
 	private $tabs = array();
 

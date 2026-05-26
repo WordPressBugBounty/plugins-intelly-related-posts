@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 function irp_ui_faq() {
     global $irp;
     $i=1;

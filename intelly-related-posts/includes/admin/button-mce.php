@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 add_action('admin_head', 'irp_add_mce_button');
 function irp_add_mce_button() {
     global $typenow;

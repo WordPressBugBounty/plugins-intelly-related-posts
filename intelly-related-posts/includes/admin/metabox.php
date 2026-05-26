@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 function irp_ui_metabox($post) {
     global $irp;
 
