@@ -176,3 +176,94 @@ i.irp-own-icon {
 
 .starrr {display:inline-block}
 .starrr i{font-size:16px;padding:0 1px;cursor:pointer;color:#2ea2cc;}
+
+/* ==========================================================================
+   X (formerly Twitter) "Follow" button — brand pill, admin-header accessory.
+   Rendered by IRP_Utils::twitter(); sits in #rate-box beside the "Rate us"
+   label + star widget inside <h2 class="nav-tab-wrapper">. Scoped under
+   .irp-x-follow so it is safe next to native WP admin styles and so it
+   overrides the font-size the anchor would otherwise inherit from the <h2>.
+   The inline SVG uses fill:currentColor, so one `color` paints label + mark.
+   ========================================================================== */
+.irp-x-follow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    margin: 0 0 0 10px;          /* separates the pill from the star widget */
+    padding: 5px 12px;           /* ~26px tall — under the 28px accessory cap */
+    border: 0;
+    border-radius: 9999px;       /* full pill => reads as a button, not a link */
+    background-color: #000;
+    color: #fff;                 /* drives white label AND white X mark */
+    font-size: 13px;             /* tames the inherited <h2> heading size; matches "Rate us" */
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;         /* never wrap "Follow @data443risk" */
+    vertical-align: middle;      /* aligns with the "Rate us" label + stars */
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .15s ease;
+}
+
+/* Beat WP admin's default/visited/hover/focus link colours in every state,
+   otherwise a{color:#2271b1} (and visited-purple) would repaint text + logo. */
+.irp-x-follow,
+.irp-x-follow:link,
+.irp-x-follow:visited,
+.irp-x-follow:hover,
+.irp-x-follow:active,
+.irp-x-follow:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Belt-and-braces: the label must never inherit the heading size either. */
+.irp-x-follow span {
+    font-size: 13px;
+    line-height: 1;
+}
+
+/* X logo — sized independently of the SVG width/height attributes, matched to
+   the 16px rating stars so the cluster reads as one row. */
+.irp-x-follow svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    fill: currentColor;
+}
+
+.irp-x-follow:hover {
+    background-color: #1a1a1a;   /* subtle lighten (~17.9:1 with #fff) */
+}
+
+.irp-x-follow:active {
+    background-color: #333;      /* pressed (~12.6:1 with #fff) */
+}
+
+/* Focus: kill WP admin's default anchor focus glow, then a progressive trio so
+   keyboard users ALWAYS get a ring — even on engines without :focus-visible —
+   while mouse clicks never leave one stuck on the pill.
+   #2271b1 is the WP admin accent; ~4.6:1 on the white page (>3:1 for UI). */
+.irp-x-follow:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+    box-shadow: none;
+}
+.irp-x-follow:focus:not(:focus-visible) {
+    outline: none;
+}
+.irp-x-follow:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+}
+
+/* Only motion is a 150ms colour fade; honour reduced-motion anyway. */
+@media (prefers-reduced-motion: reduce) {
+    .irp-x-follow {
+        transition: none;
+    }
+}

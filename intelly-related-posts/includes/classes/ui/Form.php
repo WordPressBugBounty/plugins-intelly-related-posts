@@ -119,7 +119,7 @@ class IRP_Form {
         $defaults=array('class'=>'irp-form');
         $other=$this->getTextArgs($args, $defaults);
         ?>
-        <form method="<?php echo esc_attr($method)?>" action="<?php echo esc_attr($action)?>" <?php echo wp_kses_post($other)?> >
+        <form method="<?php echo esc_attr($method)?>" action="<?php echo esc_url($action)?>" <?php echo wp_kses_post($other)?> >
     <?php }
 
     public function formEnds($clearfix = true) { ?>

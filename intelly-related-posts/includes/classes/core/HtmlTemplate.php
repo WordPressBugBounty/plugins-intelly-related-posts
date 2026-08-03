@@ -225,6 +225,22 @@ class IRP_HtmlTemplate {
                 //but with different color using shotcodes
                 $values['utemplate']=$irp->Utils->getUUID($values);
             }
+
+            // getBody() interpolates {placeholders} verbatim with no contextual
+            // escaping, so escape the dynamic (potentially author-supplied)
+            // values here, by output context, before they reach the template.
+            // Colours are already constrained to #hex/'inherit' by getColor().
+            foreach(array('postHref', 'postImageUrl', 'demoLink') as $urlKey) {
+                if(isset($values[$urlKey])) {
+                    $values[$urlKey]=esc_url($values[$urlKey]);
+                }
+            }
+            foreach(array('postTitle', 'ctaText') as $textKey) {
+                if(isset($values[$textKey])) {
+                    $values[$textKey]=esc_html($values[$textKey]);
+                }
+            }
+
             $code=$this->getBody($name, $values);
             if(!$options['includeCss']) {
                 $array=explode("\n", $code);

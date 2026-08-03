@@ -180,8 +180,20 @@ class IRP_Utils {
     }
 
     public function twitter($name) {
+        // Self-contained X (formerly Twitter) follow link. The old markup relied on
+        // Twitter's platform.twitter.com/widgets.js to turn a `.twitter-follow-button`
+        // anchor into a logo button; that widget was retired after the X rebrand, so it
+        // rendered as bare text with no logo. Inline the X mark as SVG instead — no
+        // external script, works offline, and shows the correct current brand.
+        // Styling lives in the .irp-x-follow rules in assets/css/style.css (enqueued on
+        // the admin screens that call this), which render it as a compact X-brand pill.
         ?>
-        <a href="https://twitter.com/<?php echo esc_attr( $name )?>" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @<?php echo esc_attr( $name ) ?></a>
+        <a href="https://x.com/<?php echo esc_attr( $name ); ?>" target="_blank" rel="noopener noreferrer" class="irp-x-follow">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <span>Follow @<?php echo esc_html( $name ); ?></span>
+        </a>
     <?php
     }
 
@@ -190,6 +202,7 @@ class IRP_Utils {
 
         $removePrefix=TRUE;
         $args=array();
+        // phpcs:ignore WordPress.Security.NonceVerification -- generic request reader; every value is passed through sanitize_text_field() below and CSRF is verified by the caller that acts on the data (settings save, metabox save, action dispatcher).
         $array=$this->merge(TRUE, $_POST, $_GET);
         foreach($array as $k=>$v) {
             if($this->startsWith($k, $prefix)) {
@@ -210,6 +223,7 @@ class IRP_Utils {
     {
         $result = $default;
 
+        // phpcs:disable WordPress.Security.NonceVerification -- generic request reader; the value is sanitised here and CSRF is verified by the caller that acts on it.
         if (isset($_GET[$name])) {
             $result = sanitize_text_field( $_GET[$name] );
         } else {
@@ -217,18 +231,22 @@ class IRP_Utils {
                 $result = sanitize_text_field( $_POST[$name] );
             }
         }
+        // phpcs:enable WordPress.Security.NonceVerification
 
         if (is_string($result)) {
-            $result = urldecode($result);
+            // No urldecode() here: PHP already populates $_GET/$_POST decoded,
+            // and decoding again *after* sanitize_text_field() could re-introduce
+            // characters the sanitizer removed.
             $result = trim($result);
         }
 
-        return wp_kses( $result, $this->kses_allowed_html(), array('http', 'https', 'javascript') );
+        return wp_kses( $result, $this->kses_allowed_html(), $this->kses_allowed_protocols() );
     }
 
     function sanitizeMargin($name, $default = '')
     {
         $result = $default;
+        // phpcs:disable WordPress.Security.NonceVerification -- generic request reader; the value is sanitised here and reduced to CSS unit characters below, and CSRF is verified by the caller that acts on it.
         if (isset($_GET[$name])) {
             $result = sanitize_text_field( $_GET[$name] );
         } else {
@@ -236,6 +254,7 @@ class IRP_Utils {
                 $result = sanitize_text_field ( $_POST[$name] );
             }
         }
+        // phpcs:enable WordPress.Security.NonceVerification
 
         // Define a regular expression pattern to match invalid characters
         $pattern = '/[^0-9pxem%rvwh]/';
@@ -320,7 +339,8 @@ class IRP_Utils {
     function remotePost($action, $data = '') {
         global $irp;
 
-        $data['secret'] = 'WYSIWYG';
+        // (Removed the hard-coded 'secret' => 'WYSIWYG' field: it was committed
+        // in plaintext, so it provided no authentication value.)
         $response = wp_remote_post(IRP_INTELLYWP_ENDPOINT.'?iwpm_action=' . $action, array(
             'method' => 'POST'
             , 'timeout' => 2
@@ -375,15 +395,30 @@ class IRP_Utils {
             }
         }
         foreach ($args as &$value) {
-            $value = wp_kses( $value, $this->kses_allowed_html(), array('http', 'https', 'javascript') );
+            $value = wp_kses( $value, $this->kses_allowed_html(), $this->kses_allowed_protocols() );
         }
         $result = wp_parse_args($args, $defaults);
         return $result;
     }
 
+    //hosts this plugin is allowed to send the browser to, on top of the site's own
+    function allowedRedirectHosts($hosts) {
+        $urls = array(IRP_TAB_DOCS_URI, IRP_INTELLYWP_SITE, IRP_PAGE_WORDPRESS);
+        foreach($urls as $url) {
+            $host = wp_parse_url($url, PHP_URL_HOST);
+            if($host) {
+                $hosts[] = $host;
+            }
+        }
+        return $hosts;
+    }
+
     function redirect($location) {
         if(!headers_sent()) {
-            wp_redirect($location);
+            //wp_safe_redirect() keeps the redirect on this site; the plugin's own
+            //destinations (the docs site) are allowed through the filter below
+            add_filter('allowed_redirect_hosts', array($this, 'allowedRedirectHosts'));
+            wp_safe_redirect($location);
             exit();
         }
         ?>
@@ -478,6 +513,8 @@ class IRP_Utils {
     
         wp_enqueue_script( 'irp_settings', IRP_PLUGIN_ASSETS . 'js/settings.js', array('jquery'), '2.0' );
         wp_add_inline_script( 'irp_settings', 'const settings_data = ' . wp_json_encode( $defs ) . ';', 'before' );
+        // Nonce consumed by the ui_box_preview do_action dispatcher case.
+        wp_localize_script( 'irp_settings', 'irp_settings_ajax', array( 'nonce' => wp_create_nonce( 'irp_do_action' ) ) );
     }
 
     public function merge($isAssociative, $a1, $a2=NULL, $a3=NULL, $a4=NULL, $a5=NULL) {
@@ -505,7 +542,7 @@ class IRP_Utils {
         if(isset($array[$name])) {
             $result=$array[$name];
         }
-        return wp_kses( $result, $this->kses_allowed_html(), array('http', 'https', 'javascript') );
+        return wp_kses( $result, $this->kses_allowed_html(), $this->kses_allowed_protocols() );
     }
     function geti($array, $name, $default='') {
         $result=$default;
@@ -566,28 +603,57 @@ class IRP_Utils {
 
     function isAdminUser() {
         //https://wordpress.org/support/topic/how-to-check-admin-right-without-include-pluggablephp
-        return TRUE;
-        /*
+        // Guard on wp_get_current_user(), NOT current_user_can(): the latter is
+        // defined early (capabilities.php) but internally calls the former, a
+        // pluggable function loaded later. Guarding on current_user_can() would
+        // pass, skip the require, then fatal on the undefined wp_get_current_user().
         if (!function_exists('wp_get_current_user')) {
-            require_once(ABSPATH . 'wp-includes/pluggable.php');
+            require_once ABSPATH . 'wp-includes/pluggable.php';
         }
-        return (is_multisite() || current_user_can('manage_options'));
-        */
+        return current_user_can('manage_options');
     }
     function isPluginPage() {
         $page=$this->qs('page');
         $result=(stripos($page, IRP_PLUGIN_SLUG)!==FALSE);
         return $result;
     }
+    // Allowlist for wp_kses(). Deliberately excludes <script>, <style> and any
+    // inline "style" attribute so that request-derived data laundered through
+    // this list cannot smuggle script/CSS injection. The inline formatting tags
+    // (b/i/em/strong/br) are the ones the plugin's own UI copy in Lang.txt uses.
     function kses_allowed_html() {
-        return 
-        [ 'script' => [ 'src' => [] ], 
-            'div' => [ 'style' => [], 'class' => [] ], 
-            'style' => [], 
-            'a' => ['href' => [], 'target' => [], 'rel' => [], 'class' => [], 'style' => [] ],
-            'p' => ['style' => [] ],
-            'img' => ['src' => [] ],
-            'span' => ['class' => [] ]
-        ];
+        return array(
+            'a'      => array( 'href' => array(), 'target' => array(), 'rel' => array(), 'class' => array() ),
+            'div'    => array( 'class' => array() ),
+            'p'      => array( 'class' => array() ),
+            'img'    => array( 'src' => array() ),
+            'span'   => array( 'class' => array() ),
+            'b'      => array(),
+            'i'      => array(),
+            'em'     => array(),
+            'strong' => array(),
+            'br'     => array(),
+        );
+    }
+
+    // Protocols permitted in URLs that pass through wp_kses(). Only real,
+    // navigable schemes — never "javascript:".
+    function kses_allowed_protocols() {
+        return array( 'http', 'https', 'mailto' );
+    }
+
+    // Allowlist used ONLY by the admin box-preview (activate_plugins-gated).
+    // Unlike kses_allowed_html() it permits <style> and inline "style"
+    // attributes, because the preview embeds the box's own inline stylesheet.
+    // It still refuses <script>. Never use this on request-derived data.
+    function kses_allowed_html_preview() {
+        return array(
+            'style' => array(),
+            'a'     => array( 'href' => array(), 'target' => array(), 'rel' => array(), 'class' => array(), 'style' => array() ),
+            'div'   => array( 'class' => array(), 'style' => array() ),
+            'p'     => array( 'class' => array(), 'style' => array() ),
+            'span'  => array( 'class' => array(), 'style' => array() ),
+            'img'   => array( 'src' => array(), 'class' => array(), 'style' => array(), 'width' => array(), 'height' => array(), 'alt' => array() ),
+        );
     }
 }

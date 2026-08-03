@@ -32,7 +32,7 @@ class IRP_Language {
     function P($key, $v1=NULL, $v2=NULL, $v3=NULL, $v4=NULL, $v5=NULL) {
         global $irp;
         $what=$this->L($key, $v1, $v2, $v3, $v4, $v5);
-        echo wp_kses( $what, $irp->Utils->kses_allowed_html(), array('http', 'https', 'javascript') );
+        echo wp_kses( $what, $irp->Utils->kses_allowed_html(), $irp->Utils->kses_allowed_protocols() );
     }
     //verify if the key is defined or not
     function H($key) {

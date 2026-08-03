@@ -45,6 +45,7 @@ wp.blocks.registerBlockType("data443/irp-shortcode", {
 
     var data = {
       'action' : 'irp_list_posts',
+      'nonce' : (window.irp_ajax ? window.irp_ajax.nonce : ''),
       'irp_post_type' : 'post'
     };
 
@@ -112,6 +113,7 @@ wp.blocks.registerBlockType("data443/irp-shortcode", {
               console.log('do ajax call');
               return {
                   action: 'irp_list_posts',
+                  nonce: (window.irp_ajax ? window.irp_ajax.nonce : ''),
                   irp_post_type: 'post',
                   q: params.term,
                   page: params.page

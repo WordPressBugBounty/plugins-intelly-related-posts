@@ -186,7 +186,7 @@ function irp_ui_get_box($ids, $options=NULL) {
                 }
             }
             if($irp->Utils->isTrue($options['demo'])) {
-                $options['postHref']='javascript:void(0);';
+                $options['postHref']='#';
                 $options['linkRel'] = IRP_DEFAULT_LINK_REL_ATTRIBUTE;
                 $options['linkTarget']='';
                 //$options['hasShadow']=TRUE;
@@ -209,7 +209,9 @@ function irp_ui_get_box($ids, $options=NULL) {
                     //$options['postImageHeight']=$h;
                 }
             } elseif($irp->Utils->isTrue($options['preview'])) {
-                $options['postHref']='javascript:IRP_changeRelatedBox();';
+                // No inline "javascript:" href — the admin settings.js binds a
+                // click handler on the preview box to re-render it instead.
+                $options['postHref']='#';
                 $options['linkRel'] = IRP_DEFAULT_LINK_REL_ATTRIBUTE;
                 $options['linkTarget']='';
             }
@@ -295,17 +297,30 @@ function irp_ui_first_time() {
         $irp->Options->setShowActivationNotice(FALSE);
     }
 }
-function irp_get_list_posts()
+// TRUE only when every requested post type exists and the current user holds
+// that type's own edit capability. Derived from the type (page -> edit_pages)
+// instead of hard-coding edit_posts, so a role that can edit pages but not
+// posts gets a working picker for irp_post_type=page rather than an empty list.
+function irp_user_can_list_post_types($postTypes)
 {
-    if ( isset($_GET['q']) ) {
-        $search = trim( esc_attr( sanitize_text_field( $_GET['q']) ) );
-        if ( strlen($search) > 0 ) {
-            add_filter('posts_where', function( $where ) use ($search) {
-                $where .= (" AND post_title LIKE '%" . $search . "%'");
-                return $where;
-            });
+    if ( empty($postTypes) || ! is_array($postTypes) ) {
+        return FALSE;
+    }
+    foreach ( $postTypes as $postType ) {
+        $object = get_post_type_object( $postType );
+        if ( empty($object) || empty($object->cap->edit_posts)
+            || ! current_user_can( $object->cap->edit_posts ) ) {
+            return FALSE;
         }
     }
+    return TRUE;
+}
+function irp_get_list_posts()
+{
+    // Authorization: this admin-ajax handler was callable by ANY logged-in user
+    // (incl. subscribers) with no nonce. Require a valid nonce (CSRF) and the
+    // requested type's edit capability before running any query.
+    check_ajax_referer( 'irp_list_posts', 'nonce' );
 
     $postType = '';
     if ( isset($_REQUEST['irp_post_type']) ) {
@@ -317,6 +332,23 @@ function irp_get_list_posts()
     $allowedPostTypes = array('post', 'page');
 
     $postType = array_filter(array_map('trim', explode(',', $postType)));
+
+    if ( ! irp_user_can_list_post_types( $postType ) ) {
+        wp_send_json( array( 'items' => array() ) );
+    }
+
+    if ( isset($_GET['q']) ) {
+        $search = trim( sanitize_text_field( wp_unslash( $_GET['q'] ) ) );
+        if ( strlen($search) > 0 ) {
+            global $wpdb;
+            // Build the LIKE fragment with esc_like() (for %/_ wildcards) and
+            // $wpdb->prepare() rather than concatenating request data into SQL.
+            $like = '%' . $wpdb->esc_like( $search ) . '%';
+            add_filter('posts_where', function( $where ) use ( $wpdb, $like ) {
+                return $where . $wpdb->prepare( ' AND post_title LIKE %s', $like );
+            });
+        }
+    }
 
     $result = array();
 

@@ -13,16 +13,22 @@ function irp_do_action() {
     $irp->Log->info('[actions::irp_do_action] Action: %s', $action);
 
     $nonce = '';
-    if ( isset ($_POST['nonce']) )
+    if ( isset ($_REQUEST['nonce']) )
     {
-        $nonce = sanitize_key( $_POST['nonce'] );
+        $nonce = sanitize_key( $_REQUEST['nonce'] );
     }
 
     switch($action) {
         case 'ui_button_editor':
+            if ( empty($nonce) || ! wp_verify_nonce( $nonce, 'irp_do_action' ) ) {
+                exit;
+            }
             call_irp_ui_button_editor($irp);
             break;
         case 'ui_box_preview':
+            if ( empty($nonce) || ! wp_verify_nonce( $nonce, 'irp_do_action' ) ) {
+                exit;
+            }
             call_irp_ui_box_preview($irp);
             break;
         case 'manager_trackingOn':
@@ -40,7 +46,11 @@ function irp_do_action() {
         case '':
             break; // blank strings are okay. We just want to ignore them.
         default:
-            $irp->Log->fatal('Attempting to execute unknown function %s', $action);
+            // Unknown actions are a silent no-op. This runs on 'init' for every
+            // request, including anonymous front-end hits, so it must never end
+            // the request: fatal() dies with the (reflected) log line, which
+            // turned any ?irp_action=<anything> URL into a blank page.
+            $irp->Log->error('Ignoring request to execute unknown function %s', $action);
             break;
     }
 }

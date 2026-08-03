@@ -83,7 +83,8 @@ class IRP_Tracking {
         $result['wp_version']=get_bloginfo('version');
         $result['wp_language']=get_bloginfo('language');
         $result['wp_wpurl']=get_bloginfo('wpurl');
-        $result['wp_admin_email']=get_bloginfo('admin_email');
+        // (Removed wp_admin_email from the usage payload: the administrator's
+        // email is PII and is not needed for anonymous usage statistics.)
 
         $result['plugins']=$this->getPluginData();
         $result['theme']=$this->getThemeData();

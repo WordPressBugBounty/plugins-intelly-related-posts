@@ -59,6 +59,12 @@ function irp_save_meta_box_data($postId) {
         return;
     }
 
+    // Best practice for save_post: confirm the current user may edit THIS post
+    // before persisting anything.
+    if (!current_user_can('edit_post', $postId)) {
+        return;
+    }
+
     $exclude=$irp->Utils->qs('irp_exclude', 0);
     $previous=$irp->Utils->qs('irp_previous', 0);
     if($exclude!=$previous) {

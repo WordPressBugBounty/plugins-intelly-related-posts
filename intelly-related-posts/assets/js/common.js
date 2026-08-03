@@ -212,6 +212,7 @@ jQuery(function () {
             data: function (params) {
                 return {
                     action: 'irp_list_posts',
+                    nonce: (window.irp_ajax ? window.irp_ajax.nonce : ''),
                     irp_post_type: search_data.post_type,
                     q: params.term,
                     page: params.page
@@ -237,8 +238,6 @@ jQuery(function () {
             window.open(url);
         });
         jQuery('#rate-box').show();
-
-        !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
 
         var href = jQuery("#irpRedirect").attr("href") || [];
         var done = false;

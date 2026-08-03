@@ -85,7 +85,7 @@ RewriteSectionSubtitle=Set the plugin's behavior.
 EngineSection=Engine Settings
 EngineSectionSubtitle=Choose how the plugin discovers similar posts
 PreviewSection=Real time preview
-PreviewSectionSubtitle=Change any above settings to refresh preview OR <a href="javascript:IRP_changeRelatedBox()">REFRESH HERE</a>
+PreviewSectionSubtitle=Change any above settings to refresh preview OR <a href="#" class="irp-refresh-preview">REFRESH HERE</a>
 PreviewSectionMaxTime=With these settings the plugin has ran in max {0} milliseconds with {1} different posts. Enjoy! :)
 Settings.irpActive=Active?
 Settings.irpText=Related text

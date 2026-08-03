@@ -5,7 +5,13 @@ class IRP_Tabs {
 
 	function init() {
 		global $irp;
-		if ( $irp->Utils->isAdminUser() ) {
+		// Only register admin-side hooks in the admin. is_admin() is available
+		// this early (plugin-load phase); the current user is NOT — pluggable.php
+		// and wp_get_current_user() load later, so a capability check here would
+		// fatal. The real manage_options check runs inside the callbacks below
+		// (add_submenu_page enforces it for the page; enqueueScripts re-checks),
+		// by which time pluggable.php is loaded.
+		if ( is_admin() ) {
 			add_action( 'admin_menu', array( &$this, 'attachMenu' ) );
 			add_filter( 'plugin_action_links', array( &$this, 'pluginActions' ), 10, 2 );
 			if ( $irp->Utils->isPluginPage() ) {
@@ -41,6 +47,11 @@ class IRP_Tabs {
 	}
 	function enqueueScripts() {
 		global $irp;
+		// Real capability gate. This fires on admin_enqueue_scripts, i.e. after
+		// pluggable.php is loaded, so current_user_can() is safe here.
+		if ( ! $irp->Utils->isAdminUser() ) {
+			return;
+		}
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'suggest' );
 		wp_enqueue_script( 'jquery-ui-autocomplete' );
@@ -54,6 +65,9 @@ class IRP_Tabs {
 
 		$this->wpEnqueueScript( 'assets/deps/qtip/jquery.qtip.min.js' );
 		$this->wpEnqueueScript( 'assets/js/common.js' );
+		// Nonce consumed by the irp_list_posts admin-ajax handler. The handle is
+		// derived by wpEnqueueScript() as IRP_PLUGIN_PREFIX . '_' . basename.
+		wp_localize_script( IRP_PLUGIN_PREFIX . '_common', 'irp_ajax', array( 'nonce' => wp_create_nonce( 'irp_list_posts' ) ) );
 	}
 	function wpEnqueueStyle( $uri, $name = '' ) {
 		if ( $name == '' ) {

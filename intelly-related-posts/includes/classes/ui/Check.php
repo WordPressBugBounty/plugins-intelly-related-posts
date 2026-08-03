@@ -7,6 +7,7 @@ class IRP_Check {
 
     public function getData()
     {
+        // phpcs:ignore WordPress.Security.NonceVerification -- raw request snapshot for is()/of(); the screens that act on it verify their own nonce, and callers escape on output.
         $this->data=array_merge($_POST, $_GET);
     }
 

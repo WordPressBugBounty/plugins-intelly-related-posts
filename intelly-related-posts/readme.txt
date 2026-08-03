@@ -4,7 +4,7 @@ Tags: inline related posts, suggestions, similar posts, Zemanta, YARPP
 Requires at least: 3.6
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 3.10.0
+Stable tag: 3.11.0
 License: MIT
 
 Inline Related Posts AUTOMATICALLY inserts related posts INSIDE your content, capturing immediately the reader's attention.
@@ -105,6 +105,11 @@ Absolutely Not! Inline Related Posts is built with lightweight code so you wonâ€
 == Changelog ==
 
 For detailed release notes, see our documentation here: [https://intellywp.com/docs/](https://data443.atlassian.net/servicedesk/customer/portal/17/article/858652673).
+
+= 3.11.0 =
+*Release Date - 2026-7-28*
+
+* Do a full security audit and fix any potential issues
 
 = 3.10.0 =
 *Release Date - 2026-5-20*

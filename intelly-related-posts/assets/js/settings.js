@@ -18,6 +18,7 @@ function IRP_changeRelatedBox() {
     data=jQuery.extend({
         'action': 'do_action'
         , 'irp_action': 'ui_box_preview'
+        , 'nonce': (window.irp_settings_ajax ? window.irp_settings_ajax.nonce : '')
         , 'rewritePostsDays': IRP_val('irpRewritePostsDays')
     }, data);
     //console.log(data);
@@ -74,6 +75,15 @@ function IRP_changeRelatedBox() {
 
     jQuery(function() {
         IRP_preview=false;
+
+        // The "REFRESH HERE" link and the preview box itself used to carry an
+        // inline "javascript:IRP_changeRelatedBox()" href. That inline JS was
+        // removed for security; bind the behaviour here instead.
+        jQuery(document).on('click', '.irp-refresh-preview, #relatedBoxExample a', function(e) {
+            e.preventDefault();
+            IRP_changeRelatedBox();
+        });
+
         var array=['irpRewritePostsDays', 'irpRewritePostsInBoxCount', 'irpRewriteBoxesCount'];
         for(i=0; i<array.length; i++) {
             if(jQuery('[name='+array[i]+']').length>0) {

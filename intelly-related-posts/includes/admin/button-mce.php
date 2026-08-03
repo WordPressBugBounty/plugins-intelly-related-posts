@@ -14,7 +14,17 @@ function irp_add_mce_button() {
     if (get_user_option('rich_editing') == 'true') {
         add_filter("mce_external_plugins", "irp_add_mce_plugin");
         add_filter('mce_buttons', 'irp_register_mce_button');
+        add_action('admin_print_footer_scripts', 'irp_mce_button_nonce');
     }
+}
+
+// Exposes the nonce that button-mce.js appends to the ui_button_editor dialog
+// URL, so the do_action dispatcher can verify it (CSRF protection).
+function irp_mce_button_nonce() {
+    printf(
+        "<script>window.irp_mce = window.irp_mce || {}; window.irp_mce.nonce = '%s';</script>",
+        esc_js( wp_create_nonce( 'irp_do_action' ) )
+    );
 }
 
 function irp_add_mce_plugin($plugin_array) {
@@ -31,6 +41,8 @@ function irp_ui_button_editor() {
 
     wp_enqueue_style( 'irp_free_select2_style', IRP_PLUGIN_ASSETS . 'css/style.css' );
     wp_enqueue_script( 'irp_free_common', IRP_PLUGIN_ASSETS . 'js/common.js', array('jquery') );
+    // Nonce consumed by the irp_list_posts admin-ajax handler.
+    wp_localize_script( 'irp_free_common', 'irp_ajax', array( 'nonce' => wp_create_nonce( 'irp_list_posts' ) ) );
     $postType = '';
     if ( isset($_REQUEST['irp_post_type']) ) {
         $postType = sanitize_text_field($_REQUEST['irp_post_type']);

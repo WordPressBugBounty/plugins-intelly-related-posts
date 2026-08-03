@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 class IRP_AppOptions extends IRP_Options {
     public function __construct() {
@@ -240,7 +241,14 @@ class IRP_AppOptions extends IRP_Options {
         if (!$value && $this->isRewriteStaticLinks()) {
             // remove all saved links
             global $wpdb;
-            $wpdb->query( $wpdb->prepare( "DELETE FROM `wp_options` where option_name like %s", array('IRP_POST_%') ) );
+            // A direct query is unavoidable here: core has no API for deleting
+            // options by prefix, and there is one IRP_POST_<id> row per post -
+            // enumerating them to call delete_option() would mean one query per
+            // post. The options cache is invalidated right after instead, since
+            // the rows go out behind get_option()'s back.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} where option_name like %s", array('IRP_POST_%') ) );
+            wp_cache_delete( 'alloptions', 'options' );
         }
         $this->setOption('RewriteStaticLinks', $value);
     }
@@ -392,21 +400,33 @@ class IRP_AppOptions extends IRP_Options {
 
     public function getColor($color) {
         global $irp;
-        $result=$color;
-        if(!$irp->Utils->startsWith($color, '#')) {
-            $colors=$this->getLegacyColors();
-            $v=$irp->Utils->geti($colors, $color, FALSE);
-            if($v!==FALSE) {
-                $result=$v['color'];
-            } else {
-                $colors=$this->getColors();
-                $v=$irp->Utils->geti($colors, $color, FALSE);
-                if($v!==FALSE) {
-                    $result=$v['color'];
-                }
-            }
+
+        // Colour values are interpolated straight into inline <style> blocks,
+        // so this must fail closed: only ever return a validated #hex value or
+        // '' (callers render '' as "inherit"). An unrecognised string is NOT
+        // echoed back, which is what previously allowed CSS/HTML break-out.
+        if($irp->Utils->startsWith($color, '#')) {
+            return $this->sanitizeHexColor($color);
         }
-        return $result;
+
+        $colors=$this->getLegacyColors();
+        $v=$irp->Utils->geti($colors, $color, FALSE);
+        if($v===FALSE) {
+            $colors=$this->getColors();
+            $v=$irp->Utils->geti($colors, $color, FALSE);
+        }
+        if($v!==FALSE && isset($v['color'])) {
+            return $this->sanitizeHexColor($v['color']);
+        }
+        return '';
+    }
+    //return the value only if it is a valid #rgb/#rgba/#rrggbb/#rrggbbaa colour, else ''
+    //only those four lengths are valid CSS; 3,8 also let #abcde / #abcdefg through
+    private function sanitizeHexColor($color) {
+        if(is_string($color) && preg_match('/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $color)) {
+            return $color;
+        }
+        return '';
     }
     public function getHoverColor($color) {
         $color=$this->getColor($color);

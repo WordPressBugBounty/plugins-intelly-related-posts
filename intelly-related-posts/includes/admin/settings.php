@@ -5,19 +5,23 @@ function irp_ui_tracking($override=FALSE) {
 
     $track=$irp->Utils->qs('track', '');
     if($track!='') {
-        $track=intval($track);
-        $irp->Options->setTrackingEnable($track);
-        $irp->Tracking->sendTracking(TRUE);
+        // CSRF: this flips a privacy-relevant option and triggers an outbound
+        // data POST, so only honour it with a valid nonce.
+        if($irp->Check->nonce('irp_tracking')) {
+            $track=intval($track);
+            $irp->Options->setTrackingEnable($track);
+            $irp->Tracking->sendTracking(TRUE);
+        }
     }
 
-    $uri=IRP_TAB_SETTINGS_URI.'&track=';
+    $nonce=wp_create_nonce('irp_tracking');
     if($irp->Options->isTrackingEnable()) {
         if($override) {
-            $uri.='0';
+            $uri=add_query_arg('_wpnonce', $nonce, IRP_TAB_SETTINGS_URI.'&track=0');
             $irp->Options->pushSuccessMessage('EnableAllowTrackingNotice', $uri);
         }
     } else {
-        $uri.='1';
+        $uri=add_query_arg('_wpnonce', $nonce, IRP_TAB_SETTINGS_URI.'&track=1');
         $irp->Options->pushWarningMessage('DisableAllowTrackingNotice', $uri);
     }
     $irp->Options->writeMessages();
@@ -65,7 +69,13 @@ function irp_ui_box_preview() {
     $args['includeCss']=TRUE;
     $args['preview']=TRUE;
     $box=irp_ui_get_box($ids, $args);
-    echo wp_kses( $box, $irp->Utils->kses_allowed_html(), array('http', 'https', 'javascript') );
+    // activate_plugins-gated preview. The box is generated from the plugin's own
+    // templates with its dynamic values escaped at render time (see
+    // IRP_HtmlTemplate::html); it carries an inline <style> block the preview
+    // needs, so it is filtered with the preview-only allowlist (which permits
+    // <style> but still strips <script> and the javascript: protocol) rather
+    // than the request-data allowlist.
+    echo wp_kses( $box, $irp->Utils->kses_allowed_html_preview(), array('http', 'https') );
     die();
 }
 function irp_ui_settings() {

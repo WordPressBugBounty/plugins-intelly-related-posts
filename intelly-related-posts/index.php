@@ -6,7 +6,7 @@ Description: Inline Related Posts AUTOMATICALLY inserts related posts INSIDE you
 Author: Data443
 Author URI: https://Data443.com/
 Email: support@intellywp.com
-Version: 3.10.0
+Version: 3.11.0
 Requires at least: 3.6.0
 Requires PHP: 5.6
 */
@@ -21,7 +21,7 @@ define('IRP_PLUGIN_PREFIX', 'IRP_');
 define('IRP_PLUGIN_FILE',__FILE__);
 define('IRP_PLUGIN_SLUG', 'intelly-related-posts');
 define('IRP_PLUGIN_NAME', 'Inline Related Posts');
-define('IRP_PLUGIN_VERSION', '3.10.0');
+define('IRP_PLUGIN_VERSION', '3.11.0');
 define('IRP_PLUGIN_AUTHOR', 'Data443');
 define('IRP_PLUGIN_ROOT', dirname(__FILE__).'/');
 define('IRP_PLUGIN_IMAGES', plugins_url( 'assets/images/', __FILE__ ));
@@ -41,7 +41,7 @@ define('IRP_ENGINE_SEARCH_CATEGORIES', 1);
 define('IRP_ENGINE_SEARCH_TAGS', 2);
 
 define('IRP_PLUGIN_URI', plugins_url('/', __FILE__ ));
-define('IRP_INTELLYWP_SITE', 'http://www.intellywp.com/');
+define('IRP_INTELLYWP_SITE', 'https://www.intellywp.com/');
 define('IRP_INTELLYWP_ENDPOINT', IRP_INTELLYWP_SITE.'wp-content/plugins/intellywp-manager/data.php');
 define('IRP_PAGE_FAQ', IRP_INTELLYWP_SITE.IRP_PLUGIN_SLUG);
 define('IRP_PAGE_WORDPRESS', 'https://wordpress.org/plugins/'.IRP_PLUGIN_SLUG.'/');
@@ -53,7 +53,7 @@ define('IRP_TAB_SETTINGS_URI', IRP_PAGE_SETTINGS.'&tab='.IRP_TAB_SETTINGS);
 define('IRP_TAB_ABOUT', 'about');
 define('IRP_TAB_ABOUT_URI', IRP_PAGE_SETTINGS.'&tab='.IRP_TAB_ABOUT);
 define('IRP_TAB_DOCS', 'docs');
-define('IRP_TAB_DOCS_URI', 'http://intellywp.com/docs/category/inline-related-posts/');
+define('IRP_TAB_DOCS_URI', 'https://intellywp.com/docs/category/inline-related-posts/');
 define('IRP_TAB_WHATS_NEW', 'whatsnew');
 define('IRP_TAB_WHATS_NEW_URI', IRP_PAGE_SETTINGS.'&tab='.IRP_TAB_WHATS_NEW);
 
@@ -76,6 +76,12 @@ function gutenberg_irp_shortcode_block() {
        plugins_url('shortcode-block.js', __FILE__),
        array('wp-blocks', 'wp-element', 'select2'),
        "1.4.5"
+    );
+    // Nonce consumed by the irp_list_posts admin-ajax handler.
+    wp_localize_script(
+       'gutenberg-irp-shortcode-block-active-editor',
+       'irp_ajax',
+       array( 'nonce' => wp_create_nonce( 'irp_list_posts' ) )
     );
  }
  add_action('enqueue_block_editor_assets', 'gutenberg_irp_shortcode_block');
